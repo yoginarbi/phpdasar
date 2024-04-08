@@ -1,0 +1,9 @@
+.loader {
+	width: 20px;
+	position: absolute;
+	margin-left: 15px;
+	display: none;
+}
+.jarak {
+	margin-bottom: 4px;
+}
