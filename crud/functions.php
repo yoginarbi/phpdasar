@@ -1,9 +1,13 @@
 <?php
-$conn = mysqli_connect("localhost", "root", "", "phpdasar");
+$conn = new mysqli("localhost", "root", "", "phpdasar");
+if($conn->connect_error){
+    die("Koneksi Gagal : ".$conn->connect_error);
+}
 
-function query($query)
+function query($query, $params = [])
 {
     global $conn;
+    $stmt = $conn->prepare($query);
     $result = mysqli_query($conn, $query);
     $rows = [];
     while ($row = mysqli_fetch_assoc($result)) {
