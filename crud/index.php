@@ -6,18 +6,17 @@ if (!isset($_SESSION["login"])) {
     exit;
 }
 
-// pagination
+// Pagination
 $jmlDataPerHalaman = 3;
 $jmlData = count(query("SELECT * FROM mahasiswa"));
 $jmlHalaman = ceil($jmlData / $jmlDataPerHalaman);
-$halamanAktif = (isset($_GET["halaman"])) ? $_GET["halaman"] : 1;
+$halamanAktif = isset($_GET["halaman"]) ? intval($_GET["halaman"]) : 1;
 $awalData = ($jmlDataPerHalaman * $halamanAktif) - $jmlDataPerHalaman;
 
-$mahasiswa = query("SELECT * FROM mahasiswa LIMIT $awalData, $jmlDataPerHalaman");
+$mahasiswa = query("SELECT * FROM mahasiswa LIMIT ?, ?", ["ii", $awalData, $jmlDataPerHalaman]);
 if (isset($_POST["cari"])) {
     $mahasiswa = cari($_POST["keyword"]);
 }
-
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -73,15 +72,15 @@ if (isset($_POST["cari"])) {
                 <tr>
                     <td><?= $angka; ?></td>
                     <td>
-                        <a href="ubah.php?id=<?= $mhs["id"]; ?>">Edit</a>
-                        <a href="hapus.php?id=<?= $mhs["id"]; ?>" onclick="return confirm('yakin data dihapus ?');">Delete</a>
+                        <a href="ubah.php?id=<?= intval($mhs["id"]); ?>">Edit</a>
+                        <a href="hapus.php?id=<?= intval($mhs["id"]); ?>" onclick="return confirm('Yakin data dihapus?');">Delete</a>
                     </td>
-                    <td><?= $mhs["nama"]; ?></td>
-                    <td><?= $mhs["nrp"]; ?></td>
-                    <td><?= $mhs["jurusan"]; ?></td>
-                    <td><?= $mhs["email"]; ?></td>
+                    <td><?= htmlspecialchars($mhs["nama"]); ?></td>
+                    <td><?= htmlspecialchars($mhs["nrp"]); ?></td>
+                    <td><?= htmlspecialchars($mhs["jurusan"]); ?></td>
+                    <td><?= htmlspecialchars($mhs["email"]); ?></td>
                     <td>
-                        <img src="img/<?= $mhs["gambar"]; ?>" alt="">
+                        <img src="img/<?= htmlspecialchars($mhs["gambar"]); ?>" alt="">
                     </td>
                 </tr>
                 <?php $angka++; ?>
