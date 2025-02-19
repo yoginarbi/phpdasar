@@ -4,9 +4,26 @@ if (!isset($_SESSION["login"])) {
     header("Location: login.php");
     exit;
 }
+
 require 'functions.php';
 
+// Generate token CSRF jika belum ada
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 if (isset($_POST["submit"])) {
+    // Cek token CSRF
+    if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+        echo '
+            <script>
+                alert("CSRF token tidak valid!");
+                document.location.href = "index.php";
+            </script>
+        ';
+        exit;
+    }
+
     if (tambah($_POST) > 0) {
         echo '
             <script>
@@ -55,8 +72,8 @@ if (isset($_POST["submit"])) {
                 <input type="text" name="jurusan" id="jurusan" required>
             </li>
             <li class="jarak">
-                <label for="gambar">Gambar : </label>
-                <input type="file" name="gambar" id="gambar">
+               <label for="gambar">Gambar (JPG/PNG max 2MB): </label>
+                <input type="file" name="gambar" id="gambar" accept=".jpg, .jpeg, .png">
             </li>
         </ul>
         <button type="submit" name="submit">Tambah Data</button>
