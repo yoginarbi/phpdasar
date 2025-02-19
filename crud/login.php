@@ -3,13 +3,16 @@ session_start();
 require "functions.php";
 
 if (isset($_COOKIE["id"]) && isset($_COOKIE["key"])) {
-    $id = $_COOKIE["id"];
+    $id = intval($_COOKIE["id"]);
     $key = $_COOKIE["key"];
 
-    $result = mysqli_query($conn, "SELECT username FROM user WHERE id = $id");
+    $stmt = mysqli_prepare($conn, "SELECT username FROM user WHERE id = ?");
+    mysqli_stmt_bind_param($stmt, "i", $id);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
     $row = mysqli_fetch_assoc($result);
 
-    if ($key === hash('sha256', $row["username"])) {
+    if ($row && hash_equals($key, hash('sha256', $row["username"]))) {
         $_SESSION["login"] = true;
     }
 }
@@ -19,23 +22,22 @@ if (isset($_SESSION["login"])) {
     exit;
 }
 
-
 if (isset($_POST["login"])) {
-    $username = $_POST["username"];
+    $username = mysqli_real_escape_string($conn, $_POST["username"]);
     $password = $_POST["password"];
 
-    $result = mysqli_query($conn, "SELECT * FROM user WHERE username = '$username'");
+    $stmt = mysqli_prepare($conn, "SELECT id, username, password FROM user WHERE username = ?");
+    mysqli_stmt_bind_param($stmt, "s", $username);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
 
-    if (mysqli_num_rows($result) === 1) {
-        $row = mysqli_fetch_assoc($result);
+    if ($row = mysqli_fetch_assoc($result)) {
         if (password_verify($password, $row["password"])) {
-            // set session
             $_SESSION["login"] = true;
 
-            // cek remember me
             if (isset($_POST["remember"])) {
-                setcookie('id', $row["id"], time() + 60);
-                setcookie('key', hash('sha256', $row["username"]), time() + 60);
+                setcookie('id', $row["id"], time() + 86400, "", "", true, true);
+                setcookie('key', hash('sha256', $row["username"]), time() + 86400, "", "", true, true);
             }
 
             header("Location: index.php");
@@ -71,11 +73,11 @@ if (isset($_POST["login"])) {
         <ul>
             <li class="jarak">
                 <label for="username">Username : </label>
-                <input type="text" name="username" id="username">
+                <input type="text" name="username" id="username" required>
             </li>
             <li class="jarak">
                 <label for="password">Password : </label>
-                <input type="password" name="password" id="password">
+                <input type="password" name="password" id="password" required>
             </li>
             <li>
                 <label for="remember">Remember me</label>
